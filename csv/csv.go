@@ -51,7 +51,8 @@ func CompareResults(d []difur.Difur){
 	for _, D := range d{
 		title := ">> h = " + FF(D.H) + " dt = " + FF(D.Dt)
 		w.Write([]string{title})
-		for n  := range D.U{
+		n := len(D.U) - 1
+		// for n  := range D.U{
 			// if n == 0{
 			// 	continue
 			// }
@@ -65,7 +66,7 @@ func CompareResults(d []difur.Difur){
 				tmp = append(tmp, FF(D.U[n][i]))
 			}
 			w.Write(tmp)
-		}
+		// }
 	}
 
 	w.Flush()
