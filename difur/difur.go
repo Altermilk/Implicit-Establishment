@@ -33,6 +33,7 @@ func MakeDifur(H, Dt, eps float64) Difur{
 		Eps: eps,
 	}
 	difur.SetN()
+	difur.U = make([][]float64, 0)
 	return difur
 }
 
@@ -41,9 +42,10 @@ func (d*Difur) AddLine(){
 }
 
 func (d *Difur) ImplicitEstablish(){
+
 	d.AddLine()
 	for j := 0; j < d.Nx; j++{
-		d.U[0][j] = 4 * d.H * float64(j) - 1
+		d.U[0][j] = 4 * d.H * float64(j-1) - 1
 	}
 
 	a := - d.Dt/(d.H * d.H)
@@ -60,28 +62,26 @@ func (d *Difur) ImplicitEstablish(){
 		
 		d.AddLine()
 
-		alpha := make([]float64, d.Nx - 1)
-		beta := make([]float64, d.Nx - 1)
+		alpha := make([]float64, d.Nx )
+		beta := make([]float64, d.Nx )
 
 		alpha[0], beta[0] = 0, 0
 		d.U[n+1][0] = 0
 
 		for j := 1; j < d.Nx - 1; j++{
-			psy := d.U[n][j] + d.Dt * (4*d.H*float64(j) - 1)
-			if j > 1{
-				alpha[j-1] = -a / (b + c*alpha[j-2])
-				beta[j-1] = (psy - c*beta[j-2])/(b + c * alpha[j-2])
-			}
-			
+			psy := d.U[n][j] + d.Dt * (4*d.H*float64(j-1) - 1)
+
+			alpha[j] = -a / (b + c*alpha[j-1])
+			beta[j] = (psy - c*beta[j-1])/(b + c * alpha[j-1])
 		}
 
 		d.U[n+1][d.Nx - 1] = 5
 
-		for j := d.Nx - 2; j>0; j--{
-			d.U[n+1][j] = alpha[j-1] * d.U[n+1][j+1] + beta[j-1]
+		for j := d.Nx - 2; j>=0; j--{
+			d.U[n+1][j] = alpha[j] * d.U[n+1][j+1] + beta[j]
 		}
 
-		if (NormaCheck(d.U, d.Nx, len(d.U), d.H, d.Eps, d.Title)) || n>5{
+		if (d.NormaCheck(n)){
 			
 			finish = true
 			break
@@ -90,16 +90,17 @@ func (d *Difur) ImplicitEstablish(){
 	}
 }
 
-func NormaCheck(u [][]float64, Nx, Nt int,  h, eps float64, title string) bool{
+func (d * Difur) NormaCheck(n int) bool{
 	var sum float64 = 0
-	for j := 0; j<Nx; j++{
-		for n:= 1; n<Nt; n++{
-			sum += math.Pow(u[n][j] - u[n-1][j], 2)
-		}
+	for j := 0; j<d.Nx; j++{
+		sum += math.Pow(d.U[n+1][j] - d.U[n][j], 2)
 	}
 	
-	norm := math.Sqrt(h*sum)
-	fmt.Println("-- norm for {",  title, "} = ", norm)
-	return norm <= eps
-
+	norm := math.Sqrt(d.H*sum)
+	ans := bool(norm <= d.Eps)
+	if ans{
+		fmt.Println("-- norm for {",  d.Title, "} = ", norm)
+	}
+	return ans
 }
+
