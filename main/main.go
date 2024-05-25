@@ -11,7 +11,6 @@ import (
 func main(){
 
 	wg := sync.WaitGroup{}
-	
 	wg.Add(6)
 	d := make([]difur.Difur, 0)
 
@@ -19,7 +18,7 @@ func main(){
 	h := []float64{0.1, 0.01}
 
 	f := func(i,j int){
-		dif := difur.MakeDifur(h[j], dt[i], 10e-4)
+		dif := difur.MakeDifur(h[j], dt[i], 1e-3)
 		dif.Title = "h = " + strconv.FormatFloat(dif.H, 'f', 3, 64) + ", dt = " + strconv.FormatFloat(dif.Dt, 'f', 3, 64)
 		dif.ImplicitEstablish()
 		d = append(d, dif)
